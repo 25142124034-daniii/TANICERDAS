@@ -36,7 +36,7 @@ def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
     if GEMINI_API_KEY == "MASUKKAN_API_KEY_GEMINI_KAMU_DI_SINI" or not GEMINI_API_KEY:
         return "API Key Gemini belum dipasang.** Silakan isi `GEMINI_API_KEY` di Streamlit Secrets."
     
-    # Coba pakai model gemini-2.5-flash dulu, kalau sibuk otomatis coba gemini-1.5-flash
+    # Coba pakai model gemini-3.8-flash dulu, kalau sibuk otomatis coba gemini-3.5-flash
     models_to_try = ['gemini-3.8-flash', 'gemini-3.5-flash-lite']
     
     prompt = f"""
@@ -210,7 +210,12 @@ html,body,[class*="css"] {font-family:'DM Sans',sans-serif!important;}
 [data-testid="stMain"] {background:transparent!important;}
 [data-testid="stHeader"] {background:rgba(7,26,22,.93)!important;backdrop-filter:blur(16px);border-bottom:1px solid var(--stroke-soft);}
 [data-testid="stToolbar"] {color:var(--muted)!important;}
-.block-container {max-width:1600px!important;padding:1.55rem 3rem 4rem!important;}
+.block-container {max-width:1600px!important;padding:5.25rem 3rem 4rem!important;}
+/* Streamlit reserves the top 3.75rem for its application toolbar/header.
+   Keep the first dashboard row below that area, not behind the header. */
+[data-testid="stMain"] [data-testid="stMainBlockContainer"],
+[data-testid="stMain"] .block-container {padding-top:5.25rem!important;}
+[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {padding-top:1.5rem!important;}
 [data-testid="stSidebar"] {background:var(--sidebar)!important;border-right:1px solid var(--stroke)!important;}
 [data-testid="stSidebar"] .block-container {padding:1.4rem 1.15rem!important;}
 [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {padding:1.5rem 1.25rem 2rem!important;}
@@ -222,16 +227,16 @@ small,[data-testid="stCaptionContainer"]{color:var(--muted)!important;}
 a {color:var(--accent)!important;text-decoration:none;} a:hover{text-decoration:underline}
 hr {border-color:var(--stroke-soft)!important;}
 [data-testid="stMarkdownContainer"] code,code {color:var(--accent)!important;background:#0B3B2A!important;border:1px solid #1E5840;border-radius:6px;padding:3px 6px;}
-.topbar {display:flex;gap:16px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--stroke-soft);padding:0 0 18px;margin-bottom:24px;}
-.crumb {font-size:11px;letter-spacing:.15em;font-weight:800;color:var(--muted2);text-transform:uppercase}
+.topbar {display:flex;flex-wrap:wrap;row-gap:12px;gap:16px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--stroke-soft);padding:0 0 18px;margin-bottom:24px;min-height:40px;}
+.crumb {font-size:11px;letter-spacing:.11em;font-weight:800;color:var(--muted2);text-transform:uppercase;line-height:1.65;min-width:0;overflow-wrap:anywhere}
 .crumb b {color:var(--ink);font-weight:800}
-.topright {display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px}
+.topright {display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px;flex-shrink:0}
 .topdot {width:7px;height:7px;display:inline-block;border-radius:99px;background:var(--accent);box-shadow:0 0 0 4px rgba(52,211,153,.1)}
 .topbadge {border:1px solid var(--stroke);border-radius:99px;padding:8px 13px;color:#CBE1D4;background:#102A23;letter-spacing:.035em}
-.brand {display:flex;align-items:center;gap:12px;margin:5px 0 26px;}
+.brand {display:flex;align-items:center;gap:10px;margin:5px 0 26px;min-width:0;} .brand>span:last-child{min-width:0;flex:1;}
 .brand-symbol {display:grid;place-items:center;width:40px;height:40px;background:var(--accent);border-radius:12px;color:#05251B;flex-shrink:0;}
 .brand-title {font-family:'Manrope',sans-serif;font-size:20px;color:#F3FFF7;font-weight:800;letter-spacing:-.065em;line-height:1.05}
-.brand-sub {font-size:9px;letter-spacing:.23em;color:#8DAE9D;text-transform:uppercase;margin-top:5px;font-weight:800;}
+.brand-sub {font-size:8px;letter-spacing:.09em;line-height:1.55;color:#8DAE9D;text-transform:uppercase;margin-top:5px;font-weight:800;overflow-wrap:normal;}
 .sidebar-eyebrow {color:var(--muted2);font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;margin:19px 0 10px;}
 .sidebar-info {background:#102B22;border:1px solid #27483B;border-radius:14px;padding:16px 16px;margin-top:20px;}
 .sidebar-info .tag {text-transform:uppercase;letter-spacing:.12em;font-size:10px;font-weight:800;color:var(--accent);margin-bottom:12px;}
@@ -304,8 +309,9 @@ hr {border-color:var(--stroke-soft)!important;}
 .data-note {background:#0D281F;border:1px solid #28503D;border-radius:11px;padding:12px 15px;color:#9FC4AD;font-size:11px;line-height:1.7;margin:8px 0 18px;}
 .data-note b{color:#C8ECD6}
 .page-footer {margin-top:36px;padding:18px 0;border-top:1px solid var(--stroke);display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;color:#789789;font-size:11px;}
-@media(max-width:1100px){.hero{grid-template-columns:1fr}.hero-module{display:none}.block-container{padding:1.1rem 1.6rem 3rem!important;}}
-@media(max-width:700px){.block-container{padding:1rem 1rem 2.5rem!important}.hero{padding:25px 20px;min-height:0}.hero h1{font-size:29px}.hero p{font-size:13px}.topbadge{display:none}.kpi-row{grid-template-columns:1fr;gap:9px}.section-chip{display:none}.section-head h2{font-size:21px}.metric-card{min-height:90px}.stTabs [data-baseweb="tab"]{padding:0 11px!important;font-size:11px}}
+@media(max-width:1100px){.hero{grid-template-columns:1fr}.hero-module{display:none}.block-container{padding:5.25rem 1.6rem 3rem!important;}[data-testid="stMain"] [data-testid="stMainBlockContainer"],[data-testid="stMain"] .block-container{padding:5.25rem 1.6rem 3rem!important;}}
+@media(max-width:700px){.block-container{padding:5.1rem 1rem 2.5rem!important}[data-testid="stMain"] [data-testid="stMainBlockContainer"],[data-testid="stMain"] .block-container{padding:5.1rem 1rem 2.5rem!important}.hero{padding:25px 20px;min-height:0}.hero h1{font-size:29px}.hero p{font-size:13px}.topbadge{display:none}.kpi-row{grid-template-columns:1fr;gap:9px}.section-chip{display:none}.section-head h2{font-size:21px}.metric-card{min-height:90px}.stTabs [data-baseweb="tab"]{padding:0 11px!important;font-size:11px}}
+[data-testid="stSidebar"] .block-container {padding:1.4rem 1.15rem!important;}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:0s!important;animation-duration:0s!important}}
 </style>
 """, unsafe_allow_html=True)
