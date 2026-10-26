@@ -9,6 +9,7 @@ import requests
 import plotly.graph_objects as go
 import plotly.express as px
 import io
+import time
 from google import genai
 from google.genai import types
 
@@ -26,18 +27,14 @@ except Exception as e:
 # ==============================================================================
 # INTEGRASI GEMINI AI API
 # ==============================================================================
-# Mengambil API Key secara aman dari Secrets Streamlit Cloud
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
-
-import time
 
 @st.cache_data(show_spinner=False)
 def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
     if GEMINI_API_KEY == "MASUKKAN_API_KEY_GEMINI_KAMU_DI_SINI" or not GEMINI_API_KEY:
         return "⚠️ **API Key Gemini belum dipasang.** Silakan isi `GEMINI_API_KEY` di Streamlit Secrets."
     
-    # Coba pakai model gemini-2.5-flash dulu, kalau sibuk otomatis coba gemini-1.5-flash
-    models_to_try = ['gemini-3.8-flash', 'gemini-3.6-flash']
+    models_to_try = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']
     
     prompt = f"""
     Kamu adalah pakar patologi tanaman dan agronomis profesional. 
@@ -56,7 +53,6 @@ def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
     """
 
     for model_name in models_to_try:
-        # Lakukan percobaan hingga 3 kali jika kena error 503 (server sibuk)
         for attempt in range(3):
             try:
                 client = genai.Client(api_key=GEMINI_API_KEY)
@@ -70,12 +66,13 @@ def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
                 return response.text
             except Exception as e:
                 if "503" in str(e) or "UNAVAILABLE" in str(e):
-                    time.sleep(2)  # Tunggu 2 detik sebelum coba lagi
+                    time.sleep(2)
                     continue
                 else:
                     return f"⚠️ Gagal menghubungkan ke Gemini AI: {e}"
 
     return "⚠️ Server Gemini AI sedang sangat sibuk. Silakan tekan tombol analisis sekali lagi dalam beberapa detik."
+
 # ==============================================================================
 # FUNGSI INTEGRASI COPERNICUS SENTINEL-2 API & SOILGRIDS
 # ==============================================================================
@@ -178,11 +175,11 @@ def get_real_weather_nasa(lat, lon):
     return None
 
 # ==============================================================================
-# 1. KONFIGURASI HALAMAN
+# 1. KONFIGURASI HALAMAN & CUSTOM CSS DESAIN COMMAND CENTER SAAS UI
 # ==============================================================================
 st.set_page_config(
-    page_title="TaniCerdas AI Precision",
-    page_icon="🌾",
+    page_title="TaniCerdas AI - Command Center",
+    page_icon="🟢",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -191,70 +188,161 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-    html, body, [class*="css"] {
+    html, body, [class*="st-"] {
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
+    /* Overall Background Dark Theme */
+    .stApp {
+        background-color: #0b1017 !important;
+        color: #e2e8f0;
+    }
+
     .block-container {
-        padding-top: 2rem !important;
+        padding-top: 1.2rem !important;
         padding-bottom: 3rem !important;
-        max-width: 1400px;
+        max-width: 1550px;
     }
 
-    .custom-card {
-        background-color: var(--background-secondary-color, rgba(30, 41, 59, 0.5));
-        border-radius: 16px;
-        padding: 20px;
-        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    /* Sidebar Custom Glassmorphism Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #0f1722 !important;
+        border-right: 1px solid #1a2433 !important;
+    }
+
+    /* Header Bar Design */
+    .command-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 15px;
         margin-bottom: 20px;
+        border-bottom: 1px solid #1e2a38;
+    }
+    .command-title {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .command-subtitle {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 2px;
     }
 
-    .metric-card {
-        background-color: var(--background-secondary-color, rgba(30, 41, 59, 0.6));
+    /* Dark Glass Cards UI */
+    .custom-card, .command-card {
+        background: #131c27;
         border-radius: 14px;
-        padding: 16px;
-        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+        padding: 18px;
+        border: 1px solid #1c2838;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        margin-bottom: 15px;
+    }
+
+    /* Alert Banners Like UI Image */
+    .alert-box {
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .alert-danger {
+        background: rgba(127, 29, 29, 0.25);
+        border: 1px solid #991b1b;
+        color: #fca5a5;
+    }
+    .alert-warning {
+        background: rgba(120, 53, 15, 0.25);
+        border: 1px solid #92400e;
+        color: #fde68a;
+    }
+    .alert-success {
+        background: rgba(6, 78, 59, 0.25);
+        border: 1px solid #065f46;
+        color: #6ee7b7;
+    }
+
+    .alert-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .alert-desc {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        margin-top: 4px;
+    }
+
+    /* Status Badges */
+    .badge-opt {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .badge-warn {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    /* Metric Card Styling */
+    .metric-card {
+        background-color: #0f1722;
+        border-radius: 12px;
+        padding: 14px;
+        border: 1px solid #1a2433;
         text-align: center;
         margin-bottom: 10px;
     }
-
     .metric-value {
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 800;
-        color: var(--primary-color, #10b981);
+        color: #10b981;
     }
-
     .metric-label {
-        font-size: 13px;
-        color: var(--text-color-secondary, #94a3b8);
+        font-size: 12px;
+        color: #94a3b8;
         font-weight: 500;
     }
 
+    /* Custom Navigation Tabs Styled Like UI Image */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: transparent !important;
-        padding: 4px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0;
+        border-bottom: 1px solid #1e2a38;
     }
-
     .stTabs [data-baseweb="tab"] {
-        height: 42px;
-        border-radius: 8px;
+        height: 40px;
+        border-radius: 8px 8px 0 0;
         font-weight: 600;
-        border: none !important;
+        border: 1px solid transparent !important;
         padding: 0 16px;
-        color: #94a3b8 !important;
+        color: #64748b !important;
         background-color: transparent !important;
     }
-
     .stTabs [aria-selected="true"] {
-        background-color: rgba(16, 185, 129, 0.15) !important;
+        background-color: #131c27 !important;
         color: #10b981 !important;
-        border: 1px solid #10b981 !important;
-        box-shadow: none !important;
+        border-color: #1c2838 #1c2838 transparent #1c2838 !important;
     }
-
     .stTabs [data-baseweb="tab-highlight"] {
         display: none !important;
     }
@@ -267,7 +355,6 @@ st.markdown("""
         border-radius: 14px;
         font-weight: 700;
     }
-
     .suitability-fail {
         background: linear-gradient(135deg, rgba(127, 29, 29, 0.8) 0%, rgba(153, 27, 27, 0.8) 100%);
         border: 1px solid #ef4444;
@@ -278,11 +365,11 @@ st.markdown("""
     }
 
     code {
-        color: var(--primary-color, #0284c7) !important;
-        background-color: var(--background-secondary-color, rgba(15, 23, 42, 0.8)) !important;
+        color: #38bdf8 !important;
+        background-color: #0f1722 !important;
         padding: 2px 6px !important;
         border-radius: 6px !important;
-        border: 1px solid var(--border-color, rgba(255,255,255,0.1)) !important;
+        border: 1px solid #1a2433 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -345,42 +432,167 @@ CROPS_DATABASE = {
 }
 
 # ==============================================================================
-# 2. SIDEBAR NAVIGATION & GLOBAL CROP SELECTION
+# 2. SIDEBAR NAVIGATION & PANEL KOLABORATOR SAAS
 # ==============================================================================
 with st.sidebar:
     st.markdown("""
-        <div style='text-align: center; padding: 10px 0;'>
-            <h2 style='color:#10b981; margin:0; font-weight:800; font-size:1.6rem;'>🌾 TaniCerdas AI</h2>
-            <span style='font-size:0.8rem; letter-spacing:1px;'>PRECISION SYSTEM v3.0</span>
+        <div style='display:flex; align-items:center; gap:10px; padding: 5px 0 15px 0;'>
+            <div style='background:#10b981; width:16px; height:16px; border-radius:4px;'></div>
+            <h2 style='color:#ffffff; margin:0; font-weight:800; font-size:1.3rem;'>TaniCerdas OS</h2>
         </div>
     """, unsafe_allow_html=True)
     st.divider()
 
-    st.markdown("### ⚙️ Target Komoditas Indonesia")
+    st.markdown("### ⚙️ Target Komoditas")
     categories = list(set(crop["kategori"] for crop in CROPS_DATABASE.values()))
 
     default_cat_idx = sorted(categories).index("Buah-Buahan") if "Buah-Buahan" in categories else 0
-    selected_cat = st.selectbox("Pilih Kategori Komoditas:", sorted(categories), index=default_cat_idx)
+    selected_cat = st.selectbox("Kategori Komoditas:", sorted(categories), index=default_cat_idx)
 
     filtered_crops = [k for k, v in CROPS_DATABASE.items() if v["kategori"] == selected_cat]
 
     banana_key = "Pisang (Cavendish/Ambon/Raja/Barangan)"
     default_crop_idx = filtered_crops.index(banana_key) if banana_key in filtered_crops else 0
 
-    selected_crop_global = st.selectbox("Pilih Tanaman Target:", sorted(filtered_crops), index=default_crop_idx)
+    selected_crop_global = st.selectbox("Tanaman Target:", sorted(filtered_crops), index=default_crop_idx)
 
     crop_data = CROPS_DATABASE[selected_crop_global]
 
     st.markdown(f"""
-        <div class="custom-card" style="margin-top: 15px; padding: 15px; border-left: 4px solid #10b981;">
-            <div style="font-size:0.85rem;"><b>Kategori:</b> {crop_data['kategori']}</div>
-            <div style="font-size:0.85rem; margin-top:5px;"><b>Siklus Tanam:</b> {crop_data['cycle']}</div>
-            <div style="font-size:0.85rem; margin-top:5px;"><b>Estimasi Hasil:</b> {crop_data['yield_est']}</div>
+        <div class="custom-card" style="margin-top: 15px; padding: 12px; border-left: 3px solid #10b981;">
+            <div style="font-size:0.8rem;"><b>Kategori:</b> {crop_data['kategori']}</div>
+            <div style="font-size:0.8rem; margin-top:4px;"><b>Siklus:</b> {crop_data['cycle']}</div>
+            <div style="font-size:0.8rem; margin-top:4px;"><b>Estimasi:</b> {crop_data['yield_est']}</div>
         </div>
     """, unsafe_allow_html=True)
 
+    st.divider()
+    st.markdown("### 👥 Team Collaboration")
+
+    team = [
+        {"name": "Sarah Chen", "role": "Farm Manager", "avatar": "SC", "color": "#10b981", "status": "North Farm"},
+        {"name": "Michael Torres", "role": "Operations Lead", "avatar": "MT", "color": "#38bdf8", "status": "East Field"},
+        {"name": "Emma Wilson", "role": "Quality Control", "avatar": "EW", "color": "#a855f7", "status": "Processing Unit"},
+        {"name": "David Park", "role": "Analytics Lead", "avatar": "DP", "color": "#f59e0b", "status": "HQ Office"}
+    ]
+
+    for member in team:
+        st.markdown(f"""
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <div style="background:{member['color']}; color:#fff; font-weight:700; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">
+                    {member['avatar']}
+                </div>
+                <div>
+                    <div style="font-size:0.82rem; font-weight:700; color:#ffffff;">{member['name']}</div>
+                    <div style="font-size:0.72rem; color:#64748b;">{member['role']} • {member['status']}</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
 # ==============================================================================
-# 3. TAB NAVIGATION
+# 3. TOP COMMAND HEADER & GLOBAL ALERT CENTER (Persis UI Gambar)
+# ==============================================================================
+st.markdown("""
+    <div class="command-header">
+        <div>
+            <h1 class="command-title">
+                <span style="background:#10b981; border-radius:8px; width:12px; height:24px; display:inline-block;"></span>
+                Command Center
+            </h1>
+            <div class="command-subtitle">Real-time precision agriculture analytics & AI diagnostic monitoring</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <div style="font-size:0.8rem; color:#64748b;">📅 Wednesday, October 28, 2026 • 14:32 UTC</div>
+            <div style="background:#131c27; border:1px solid #1c2838; padding:6px 14px; border-radius:8px; color:#10b981; font-weight:700; font-size:0.8rem;">
+                🟢 Active Live
+            </div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+st.markdown("##### ⚠️ Global Alert Center")
+al_col1, al_col2, al_col3 = st.columns(3)
+
+with al_col1:
+    st.markdown("""
+        <div class="alert-box alert-danger">
+            <div class="alert-title">🌡️ Temperature Alert</div>
+            <div class="alert-desc">Storage Unit B exceeding optimal range (29°C)</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with al_col2:
+    st.markdown("""
+        <div class="alert-box alert-warning">
+            <div class="alert-title">💧 Humidity Warning</div>
+            <div class="alert-desc">Wheat storage humidity at 14% - action required</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with al_col3:
+    st.markdown("""
+        <div class="alert-box alert-success">
+            <div class="alert-title">📈 Market Opportunity</div>
+            <div class="alert-desc">Crop market prices up +5.2% - optimal selling window</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Helper function buat grafik tren mini (Sparkline) di kartu Farm Overview
+def create_sparkline(y_values):
+    fig = go.Figure(data=go.Scatter(y=y_values, mode='lines', line=dict(color='#10b981', width=2.5)))
+    fig.update_layout(
+        height=55, margin=dict(l=0, r=0, t=0, b=0),
+        xaxis=dict(visible=False), yaxis=dict(visible=False),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)'
+    )
+    return fig
+
+# Farm Overview Widget Cards (Visual Kurva Hijau Emerald)
+st.markdown("##### 🌐 Farm Overview & Real-Time Facilities")
+farm_col1, farm_col2 = st.columns(2)
+
+with farm_col1:
+    st.markdown("""
+        <div class="command-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="font-weight:800; font-size:1.05rem; color:#fff;">North Valley Farm</span>
+                    <span class="badge-opt" style="margin-left:8px;">OPTIMAL</span>
+                    <div style="font-size:0.75rem; color:#64748b;">Sidoarjo, Jawa Timur</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:1.5rem; font-weight:800; color:#fff;">2,450</div>
+                    <div style="font-size:0.75rem; color:#10b981; font-weight:700;">+8.5%</div>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.plotly_chart(create_sparkline([10, 11, 13, 12, 16, 18, 22]), use_container_width=True, key="spark1_ui")
+
+with farm_col2:
+    st.markdown("""
+        <div class="command-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="font-weight:800; font-size:1.05rem; color:#fff;">East Field Operations</span>
+                    <span class="badge-opt" style="margin-left:8px;">OPTIMAL</span>
+                    <div style="font-size:0.75rem; color:#64748b;">Malang, Jawa Timur</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:1.5rem; font-weight:800; color:#fff;">1,820</div>
+                    <div style="font-size:0.75rem; color:#10b981; font-weight:700;">+5.2%</div>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.plotly_chart(create_sparkline([8, 10, 9, 14, 13, 17, 19]), use_container_width=True, key="spark2_ui")
+
+st.markdown("---")
+
+# ==============================================================================
+# 4. TAB NAVIGATION INTERAKTIF (KODE KAMPUS KAMU)
 # ==============================================================================
 tab1, tab2, tab3, tab_yield, tab4, tab5 = st.tabs([
     "Kelayakan Lahan",
@@ -560,14 +772,12 @@ with tab2:
         st.markdown(f"#### Hasil Analisis Gemini AI ({selected_crop_global})")
         if image_source:
             with st.spinner(f"🤖 Gemini AI sedang menganalisis karakteristik penyakit pada {selected_crop_global}..."):
-                # Kompresi gambar agar proses kirim super cepat
                 img_temp = image.copy()
                 img_temp.thumbnail((800, 800))
                 img_byte_arr = io.BytesIO()
                 img_temp.convert('RGB').save(img_byte_arr, format='JPEG', quality=75)
                 compressed_bytes = img_byte_arr.getvalue()
 
-                # Panggil fungsi yang sudah di-cache
                 ai_analysis = analyze_plant_disease_with_gemini(compressed_bytes, selected_crop_global)
                 
                 if "BUKAN_TANAMAN" in ai_analysis:
