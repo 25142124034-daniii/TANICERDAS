@@ -36,7 +36,7 @@ def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
     if GEMINI_API_KEY == "MASUKKAN_API_KEY_GEMINI_KAMU_DI_SINI" or not GEMINI_API_KEY:
         return "API Key Gemini belum dipasang.** Silakan isi `GEMINI_API_KEY` di Streamlit Secrets."
     
-    # Coba pakai model gemini-3.8-flash dulu, kalau sibuk otomatis coba gemini-3.5-flash
+    # Coba pakai model gemini-2.5-flash dulu, kalau sibuk otomatis coba gemini-1.5-flash
     models_to_try = ['gemini-3.8-flash', 'gemini-3.5-flash-lite']
     
     prompt = f"""
@@ -190,7 +190,7 @@ def get_real_weather_nasa(lat, lon):
 # 1. KONFIGURASI HALAMAN
 # ==============================================================================
 st.set_page_config(
-    page_title="TaniCerdas | Agriculture Intelligence",
+    page_title="TaniCerdas | Enterprise Agriculture Intelligence",
     page_icon="T",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -313,6 +313,62 @@ hr {border-color:var(--stroke-soft)!important;}
 @media(max-width:700px){.block-container{padding:5.1rem 1rem 2.5rem!important}[data-testid="stMain"] [data-testid="stMainBlockContainer"],[data-testid="stMain"] .block-container{padding:5.1rem 1rem 2.5rem!important}.hero{padding:25px 20px;min-height:0}.hero h1{font-size:29px}.hero p{font-size:13px}.topbadge{display:none}.kpi-row{grid-template-columns:1fr;gap:9px}.section-chip{display:none}.section-head h2{font-size:21px}.metric-card{min-height:90px}.stTabs [data-baseweb="tab"]{padding:0 11px!important;font-size:11px}}
 [data-testid="stSidebar"] .block-container {padding:1.4rem 1.15rem!important;}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:0s!important;animation-duration:0s!important}}
+
+
+/* ENTERPRISE EDITION — refined hierarchy, robust responsive layout */
+:root {--bg:#081914;--sidebar:#0B201A;--panel:#10251F;--panel2:#152E26;--stroke:#29473A;--stroke-soft:#203A30;--ink:#F4F8F4;--muted:#A8BDB2;--accent:#38D39A;--cyan:#69C9CB;}
+html,body,[class*="css"] {font-family:'DM Sans',sans-serif!important;}
+[data-testid="stSidebar"]{min-width:235px!important;}
+[data-testid="stMain"] [data-testid="stMainBlockContainer"],
+[data-testid="stMain"] .block-container {max-width:1500px!important; padding:6.25rem clamp(1rem,3vw,3.4rem) 4rem!important; overflow:visible!important;}
+[data-testid="stHeader"] {min-height:3.4rem!important;background:#081914!important;border-bottom:1px solid #1F382D!important;}
+[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {padding-top:2rem!important;}
+.topbar{min-height:48px;align-items:center;padding-bottom:18px;margin-bottom:22px;overflow:visible!important;}
+.crumb{font-size:11px;letter-spacing:.06em;line-height:1.6;color:#A9BFB3;}
+.topbadge{border-radius:8px;background:#112A21;border-color:#315040;font-size:10px;font-weight:700;white-space:nowrap;}
+.brand-title{font-size:21px!important;letter-spacing:-.04em;}
+.brand-sub{font-size:9px!important;letter-spacing:.07em!important;}
+.brand-symbol{border-radius:10px;background:#38D39A!important;}
+.hero {border-radius:18px;min-height:280px;padding:36px clamp(24px,3vw,42px);background:radial-gradient(ellipse at 90% 15%,rgba(37,146,111,.15),transparent 46%),linear-gradient(118deg,#143629,#10251F 65%,#0A211A);border-color:#2A4E3C;box-shadow:none;}
+.hero h1{font-size:clamp(30px,3.1vw,46px)!important;font-weight:750;line-height:1.14;margin:16px 0 16px;letter-spacing:-.055em;}
+.hero h1 span{color:#56DFAD;}
+.hero p{font-size:14px;color:#B5CEBF;max-width:610px;}
+.hero-module{border-color:#315542;background:#0B221B;min-height:195px;box-shadow:none;}
+.hero-module .value{font-size:42px;}
+.hero-tags span{background:rgba(54,112,80,.18);border:1px solid #30513F;border-radius:6px;color:#B8DBCB;font-size:11px;}
+.kpi-row{gap:14px;margin-bottom:30px;}
+.kpi{background:#102820;border-color:#29493B;border-radius:12px;padding:22px 24px;}
+.kpi small{font-size:10px;letter-spacing:.13em;color:#95B5A5;}
+.kpi strong{font-size:16px;font-weight:700;letter-spacing:-.015em;line-height:1.45;}
+.section-head{margin-top:28px;}
+.section-head .index{letter-spacing:.1em;color:#75DEB1;}
+.section-chip{border-radius:6px;background:#173829;color:#AEDCC4;}
+.custom-card,.metric-card{border-radius:12px!important;background:#102820!important;}
+[data-testid="stMetric"]{background:#102820;border:1px solid #284639;border-radius:12px;padding:20px;}
+.stTabs [data-baseweb="tab-list"]{gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;border-bottom:1px solid #284438;}
+.stTabs [data-baseweb="tab"]{white-space:nowrap;min-height:48px;font-size:12px!important;font-weight:650!important;padding:0 15px!important;}
+.stTabs [aria-selected="true"]{color:#68E5B3!important;border-bottom:2px solid #68E5B3!important;background:#123427!important;}
+.stButton>button[kind="primary"]{background:#34D399!important;color:#062318!important;border:1px solid #34D399!important;font-weight:750!important;}
+.stButton>button:hover{border-color:#55DAAC!important;}
+[data-testid="stFileUploader"]{border-radius:12px;}
+[data-testid="stDataFrame"],iframe{border-radius:10px;}
+@media (max-width:1100px){.hero{grid-template-columns:1fr;}.hero-module{display:none!important;}.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media (max-width:700px){
+[data-testid="stMain"] [data-testid="stMainBlockContainer"],[data-testid="stMain"] .block-container{padding:5.75rem 1rem 3rem!important;}
+.topbar{flex-direction:column;align-items:flex-start;gap:8px;}
+.topright{flex-wrap:wrap;}
+.topbadge{display:inline-flex!important;}
+.hero{padding:25px 22px;min-height:auto;}
+.hero h1{font-size:29px!important;}
+.hero-tags{gap:6px;}
+.kpi-row{grid-template-columns:1fr;gap:8px;}
+.kpi{padding:17px 19px;}
+.section-head{align-items:flex-start;}
+.section-head h2{font-size:21px;}
+[data-testid="stHorizontalBlock"]{flex-wrap:wrap;}
+}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important;}}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -414,32 +470,32 @@ with st.sidebar:
        <div class="sidebar-row"><span>Siklus tanam</span><b>{html.escape(crop_data['cycle'])}</b></div>
        <div class="sidebar-row"><span>Potensi hasil</span><b>{html.escape(crop_data['yield_est'])}</b></div>
       </div>
-      <div class="sidebar-footer">TANICERDAS / PRECISION SUITE<br>Research and planning workspace<br>Version 4.0 — Dark Emerald</div>
+      <div class="sidebar-footer">TANICERDAS / PRECISION SUITE<br>Research and planning workspace<br>Version 5.0 — Enterprise Edition</div>
     """, unsafe_allow_html=True)
 
 st.markdown("""
-<div class="topbar"><span class="crumb">TANICERDAS / <b>INTELLIGENCE WORKSPACE</b></span>
-  <span class="topright"><span class="topdot"></span><span class="topbadge">PRECISION SUITE &nbsp; / &nbsp; 2026</span></span>
+<div class="topbar"><span class="crumb">WORKSPACE / <b>AGRICULTURAL INTELLIGENCE</b></span>
+  <span class="topright"><span class="topdot"></span><span class="topbadge">ENTERPRISE EDITION &nbsp; / &nbsp; 2026</span></span>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown(f"""
 <section class="hero">
  <div>
-  <div class="eyebrow">AGRICULTURAL INTELLIGENCE &nbsp; / &nbsp; DATA-DRIVEN OPERATIONS</div>
-  <h1>Presisi untuk<br><span>setiap hektare.</span></h1>
-  <p>Satu ruang kerja untuk memahami kondisi lahan, mengevaluasi kesehatan tanaman, merencanakan irigasi, dan mengeksplorasi proyeksi hasil panen.</p>
+  <div class="eyebrow">PRECISION AGRICULTURE PLATFORM &nbsp; / &nbsp; INTELLIGENCE WORKSPACE</div>
+  <h1>Keputusan lebih tepat.<br><span>Hasil lebih terukur.</span></h1>
+  <p>Platform terpadu untuk analisis spasial, diagnosis tanaman, perencanaan irigasi, serta simulasi produktivitas pertanian.</p>
   <div class="hero-tags"><span>Spatial analytics</span><span>Crop diagnostics</span><span>Water planning</span><span>Yield insights</span></div>
  </div>
  <div class="hero-module" aria-label="Ringkasan kapabilitas platform">
-   <div class="label">ACTIVE INTELLIGENCE MODULES</div>
+   <div class="label">AVAILABLE ANALYTICS MODULES</div>
    <div class="value">06 <small>/ modules</small></div>
    <div class="mini-wave" aria-hidden="true">
      <i style="height:33%"></i><i style="height:44%"></i><i style="height:38%"></i><i style="height:59%"></i>
      <i style="height:52%"></i><i style="height:67%"></i><i style="height:61%"></i><i style="height:82%"></i>
      <i style="height:73%"></i><i style="height:91%"></i><i style="height:78%"></i><i style="height:95%"></i>
    </div>
-   <div class="foot"><span>Spatial / Climate / Crop</span><strong>RESEARCH MODE</strong></div>
+   <div class="foot"><span>Spatial / Climate / Crop</span><strong>ANALYTICAL WORKSPACE</strong></div>
  </div>
 </section>
 <div class="kpi-row">
