@@ -28,41 +28,54 @@ except Exception as e:
 # ==============================================================================
 # Mengambil API Key secara aman dari Secrets Streamlit Cloud
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
+
+import time
+
 @st.cache_data(show_spinner=False)
 def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
     if GEMINI_API_KEY == "MASUKKAN_API_KEY_GEMINI_KAMU_DI_SINI" or not GEMINI_API_KEY:
-        return "⚠️ **API Key Gemini belum dipasang.** Silakan isi `GEMINI_API_KEY` di kode `app.py`."
+        return "⚠️ **API Key Gemini belum dipasang.** Silakan isi `GEMINI_API_KEY` di Streamlit Secrets."
     
-    try:
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        
-        prompt = f"""
-        Kamu adalah pakar patologi tanaman dan agronomis profesional. 
-        Analisis foto berikut untuk sampel tanaman: {crop_name}.
-        
-        Petunjuk analisis:
-        1. Pertama, periksa apakah gambar ini benar-benar memuat bagian dari tanaman/daun/buah. Jika BUKAN tanaman, jawab dengan kalimat tegas: "BUKAN_TANAMAN".
-        2. Jika memuat tanaman, analisa apakah tanaman tersebut SEHAT atau TERSERANG PENYAKIT/HAMA.
-        3. Jika terserang penyakit, berikan:
-           - Nama Penyakit / Hama (serta nama ilmiah patogennya).
-           - Tingkat Keparahan Infeksi (Rendah / Sedang / Tinggi).
-           - Gejala Khas yang terlihat pada foto.
-           - Rekomendasi Penanganan dan Pengobatan langkah demi langkah yang praktis untuk petani.
-        
-        Sajikan jawaban dalam format Markdown yang rapi, profesional, dan mudah dipahami.
-        """
-        
-        response = client.models.generate_content(
-            model='gemini-3.8-flash',
-            contents=[
-                prompt,
-                types.Part.from_bytes(data=image_bytes_data, mime_type='image/jpeg')
-            ]
-        )
-        return response.text
-    except Exception as e:
-        return f"⚠️ Gagal menghubungkan ke Gemini AI: {e}"
+    # Coba pakai model gemini-2.5-flash dulu, kalau sibuk otomatis coba gemini-1.5-flash
+    models_to_try = ['gemini-2.5-flash', 'gemini-1.5-flash']
+    
+    prompt = f"""
+    Kamu adalah pakar patologi tanaman dan agronomis profesional. 
+    Analisis foto berikut untuk sampel tanaman: {crop_name}.
+    
+    Petunjuk analisis:
+    1. Pertama, periksa apakah gambar ini benar-benar memuat bagian dari tanaman/daun/buah. Jika BUKAN tanaman, jawab dengan kalimat tegas: "BUKAN_TANAMAN".
+    2. Jika memuat tanaman, analisa apakah tanaman tersebut SEHAT atau TERSERANG PENYAKIT/HAMA.
+    3. Jika terserang penyakit, berikan:
+       - Nama Penyakit / Hama (serta nama ilmiah patogennya).
+       - Tingkat Keparahan Infeksi (Rendah / Sedang / Tinggi).
+       - Gejala Khas yang terlihat pada foto.
+       - Rekomendasi Penanganan dan Pengobatan langkah demi langkah yang praktis untuk petani.
+    
+    Sajikan jawaban dalam format Markdown yang rapi, profesional, dan mudah dipahami.
+    """
 
+    for model_name in models_to_try:
+        # Lakukan percobaan hingga 3 kali jika kena error 503 (server sibuk)
+        for attempt in range(3):
+            try:
+                client = genai.Client(api_key=GEMINI_API_KEY)
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=[
+                        prompt,
+                        types.Part.from_bytes(data=image_bytes_data, mime_type='image/jpeg')
+                    ]
+                )
+                return response.text
+            except Exception as e:
+                if "503" in str(e) or "UNAVAILABLE" in str(e):
+                    time.sleep(2)  # Tunggu 2 detik sebelum coba lagi
+                    continue
+                else:
+                    return f"⚠️ Gagal menghubungkan ke Gemini AI: {e}"
+
+    return "⚠️ Server Gemini AI sedang sangat sibuk. Silakan tekan tombol analisis sekali lagi dalam beberapa detik."
 # ==============================================================================
 # FUNGSI INTEGRASI COPERNICUS SENTINEL-2 API & SOILGRIDS
 # ==============================================================================
