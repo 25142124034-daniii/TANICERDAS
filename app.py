@@ -175,10 +175,10 @@ def get_real_weather_nasa(lat, lon):
     return None
 
 # ==============================================================================
-# 1. KONFIGURASI HALAMAN & CUSTOM CSS DESAIN COMMAND CENTER SAAS UI
+# 1. KONFIGURASI HALAMAN & CUSTOM CSS DESAIN ULTRA MODERN INTERAKTIF
 # ==============================================================================
 st.set_page_config(
-    page_title="TaniCerdas AI - Command Center",
+    page_title="TaniCerdas AI - High-Tech Dashboard",
     page_icon="🟢",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -194,7 +194,7 @@ st.markdown("""
 
     /* Overall Background Dark Theme */
     .stApp {
-        background-color: #0b1017 !important;
+        background: radial-gradient(circle at 50% -20%, #152335 0%, #0b1017 80%) !important;
         color: #e2e8f0;
     }
 
@@ -204,29 +204,44 @@ st.markdown("""
         max-width: 1550px;
     }
 
-    /* Sidebar Custom Glassmorphism Styling */
+    /* Glassmorphism Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #0f1722 !important;
-        border-right: 1px solid #1a2433 !important;
+        background: rgba(15, 23, 34, 0.85) !important;
+        backdrop-filter: blur(16px);
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
 
-    /* Header Bar Design */
+    /* Live Pulsing Dot Animation */
+    .pulse-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Header Styling */
     .command-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-bottom: 15px;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #1e2a38;
+        padding-bottom: 18px;
+        margin-bottom: 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     .command-title {
-        font-size: 1.7rem;
+        font-size: 1.8rem;
         font-weight: 800;
         color: #ffffff;
         margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 12px;
+        letter-spacing: -0.5px;
     }
     .command-subtitle {
         font-size: 0.85rem;
@@ -234,142 +249,137 @@ st.markdown("""
         margin-top: 2px;
     }
 
-    /* Dark Glass Cards UI */
+    /* Interactive Hover Glass Cards */
     .custom-card, .command-card {
-        background: #131c27;
-        border-radius: 14px;
-        padding: 18px;
-        border: 1px solid #1c2838;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        background: rgba(19, 28, 39, 0.7);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         margin-bottom: 15px;
     }
+    .command-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15);
+    }
 
-    /* Alert Banners Like UI Image */
+    /* Interactive Alert Box */
     .alert-box {
-        border-radius: 12px;
-        padding: 14px;
+        border-radius: 14px;
+        padding: 16px;
         margin-bottom: 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        transition: transform 0.2s ease;
+    }
+    .alert-box:hover {
+        transform: scale(1.02);
     }
     .alert-danger {
-        background: rgba(127, 29, 29, 0.25);
-        border: 1px solid #991b1b;
+        background: linear-gradient(135deg, rgba(153, 27, 27, 0.25) 0%, rgba(88, 28, 28, 0.3) 100%);
+        border: 1px solid rgba(239, 68, 68, 0.4);
         color: #fca5a5;
     }
     .alert-warning {
-        background: rgba(120, 53, 15, 0.25);
-        border: 1px solid #92400e;
+        background: linear-gradient(135deg, rgba(180, 83, 9, 0.25) 0%, rgba(120, 53, 15, 0.3) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.4);
         color: #fde68a;
     }
     .alert-success {
-        background: rgba(6, 78, 59, 0.25);
-        border: 1px solid #065f46;
+        background: linear-gradient(135deg, rgba(6, 95, 70, 0.25) 0%, rgba(6, 78, 59, 0.3) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.4);
         color: #6ee7b7;
     }
 
-    .alert-title {
-        font-size: 0.9rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .alert-desc {
-        font-size: 0.8rem;
-        opacity: 0.85;
-        margin-top: 4px;
-    }
-
-    /* Status Badges */
+    /* Badges */
     .badge-opt {
         background: rgba(16, 185, 129, 0.15);
         color: #10b981;
         border: 1px solid rgba(16, 185, 129, 0.3);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.72rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
         font-weight: 700;
-    }
-    .badge-warn {
-        background: rgba(245, 158, 11, 0.15);
-        color: #f59e0b;
-        border: 1px solid rgba(245, 158, 11, 0.3);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.72rem;
-        font-weight: 700;
+        letter-spacing: 0.5px;
     }
 
-    /* Metric Card Styling */
+    /* Interactive Metric Box */
     .metric-card {
-        background-color: #0f1722;
-        border-radius: 12px;
-        padding: 14px;
-        border: 1px solid #1a2433;
+        background: rgba(15, 23, 34, 0.8);
+        border-radius: 14px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
         text-align: center;
-        margin-bottom: 10px;
+        transition: all 0.2s ease;
+    }
+    .metric-card:hover {
+        border-color: #38bdf8;
+        background: rgba(15, 23, 34, 0.95);
     }
     .metric-value {
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 800;
         color: #10b981;
     }
     .metric-label {
         font-size: 12px;
         color: #94a3b8;
-        font-weight: 500;
+        font-weight: 600;
     }
 
-    /* Custom Navigation Tabs Styled Like UI Image */
+    /* Tab Custom Styling */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: transparent !important;
-        padding: 0;
-        border-bottom: 1px solid #1e2a38;
+        gap: 10px;
+        background: rgba(15, 23, 34, 0.5) !important;
+        padding: 6px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 40px;
-        border-radius: 8px 8px 0 0;
+        height: 42px;
+        border-radius: 10px;
         font-weight: 600;
-        border: 1px solid transparent !important;
-        padding: 0 16px;
-        color: #64748b !important;
+        border: none !important;
+        padding: 0 20px;
+        color: #94a3b8 !important;
         background-color: transparent !important;
+        transition: all 0.2s ease;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #131c27 !important;
-        color: #10b981 !important;
-        border-color: #1c2838 #1c2838 transparent #1c2838 !important;
+        background: #10b981 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
     }
     .stTabs [data-baseweb="tab-highlight"] {
         display: none !important;
     }
 
     .suitability-pass {
-        background: linear-gradient(135deg, rgba(6, 78, 59, 0.8) 0%, rgba(20, 83, 45, 0.8) 100%);
+        background: linear-gradient(135deg, rgba(6, 95, 70, 0.8) 0%, rgba(20, 83, 45, 0.9) 100%);
         border: 1px solid #10b981;
-        color: #6ee7b7;
-        padding: 18px;
-        border-radius: 14px;
+        color: #a7f3d0;
+        padding: 20px;
+        border-radius: 16px;
         font-weight: 700;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
     }
     .suitability-fail {
-        background: linear-gradient(135deg, rgba(127, 29, 29, 0.8) 0%, rgba(153, 27, 27, 0.8) 100%);
+        background: linear-gradient(135deg, rgba(153, 27, 27, 0.8) 0%, rgba(127, 29, 29, 0.9) 100%);
         border: 1px solid #ef4444;
         color: #fca5a5;
-        padding: 18px;
-        border-radius: 14px;
+        padding: 20px;
+        border-radius: 16px;
         font-weight: 700;
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
     }
 
     code {
         color: #38bdf8 !important;
-        background-color: #0f1722 !important;
-        padding: 2px 6px !important;
+        background: rgba(15, 23, 34, 0.9) !important;
+        padding: 3px 8px !important;
         border-radius: 6px !important;
-        border: 1px solid #1a2433 !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -432,13 +442,13 @@ CROPS_DATABASE = {
 }
 
 # ==============================================================================
-# 2. SIDEBAR NAVIGATION & PANEL KOLABORATOR SAAS
+# 2. SIDEBAR NAVIGATION & TEAM PANEL
 # ==============================================================================
 with st.sidebar:
     st.markdown("""
-        <div style='display:flex; align-items:center; gap:10px; padding: 5px 0 15px 0;'>
-            <div style='background:#10b981; width:16px; height:16px; border-radius:4px;'></div>
-            <h2 style='color:#ffffff; margin:0; font-weight:800; font-size:1.3rem;'>TaniCerdas OS</h2>
+        <div style='display:flex; align-items:center; gap:12px; padding: 5px 0 15px 0;'>
+            <div style='background:linear-gradient(135deg, #10b981, #059669); width:18px; height:18px; border-radius:6px; box-shadow:0 0 10px #10b981;'></div>
+            <h2 style='color:#ffffff; margin:0; font-weight:800; font-size:1.35rem; letter-spacing:-0.5px;'>TaniCerdas OS</h2>
         </div>
     """, unsafe_allow_html=True)
     st.divider()
@@ -459,15 +469,15 @@ with st.sidebar:
     crop_data = CROPS_DATABASE[selected_crop_global]
 
     st.markdown(f"""
-        <div class="custom-card" style="margin-top: 15px; padding: 12px; border-left: 3px solid #10b981;">
-            <div style="font-size:0.8rem;"><b>Kategori:</b> {crop_data['kategori']}</div>
-            <div style="font-size:0.8rem; margin-top:4px;"><b>Siklus:</b> {crop_data['cycle']}</div>
-            <div style="font-size:0.8rem; margin-top:4px;"><b>Estimasi:</b> {crop_data['yield_est']}</div>
+        <div class="custom-card" style="margin-top: 15px; padding: 14px; border-left: 3px solid #10b981;">
+            <div style="font-size:0.8rem; color:#cbd5e1;"><b>Kategori:</b> {crop_data['kategori']}</div>
+            <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px;"><b>Siklus:</b> {crop_data['cycle']}</div>
+            <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px;"><b>Estimasi:</b> {crop_data['yield_est']}</div>
         </div>
     """, unsafe_allow_html=True)
 
     st.divider()
-    st.markdown("### 👥 Team Collaboration")
+    st.markdown("### 👥 Active Farm Managers")
 
     team = [
         {"name": "Sarah Chen", "role": "Farm Manager", "avatar": "SC", "color": "#10b981", "status": "North Farm"},
@@ -478,33 +488,33 @@ with st.sidebar:
 
     for member in team:
         st.markdown(f"""
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                <div style="background:{member['color']}; color:#fff; font-weight:700; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                <div style="background:{member['color']}; color:#fff; font-weight:700; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; box-shadow: 0 0 10px {member['color']}55;">
                     {member['avatar']}
                 </div>
                 <div>
                     <div style="font-size:0.82rem; font-weight:700; color:#ffffff;">{member['name']}</div>
-                    <div style="font-size:0.72rem; color:#64748b;">{member['role']} • {member['status']}</div>
+                    <div style="font-size:0.72rem; color:#64748b;">{member['role']} • <span style="color:#94a3b8;">{member['status']}</span></div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 3. TOP COMMAND HEADER & GLOBAL ALERT CENTER (Persis UI Gambar)
+# 3. TOP COMMAND HEADER & GLOBAL ALERT CENTER
 # ==============================================================================
 st.markdown("""
     <div class="command-header">
         <div>
             <h1 class="command-title">
-                <span style="background:#10b981; border-radius:8px; width:12px; height:24px; display:inline-block;"></span>
+                <span class="pulse-dot" style="margin-right:8px;"></span>
                 Command Center
             </h1>
             <div class="command-subtitle">Real-time precision agriculture analytics & AI diagnostic monitoring</div>
         </div>
         <div style="display:flex; align-items:center; gap:15px;">
-            <div style="font-size:0.8rem; color:#64748b;">📅 Wednesday, October 28, 2026 • 14:32 UTC</div>
-            <div style="background:#131c27; border:1px solid #1c2838; padding:6px 14px; border-radius:8px; color:#10b981; font-weight:700; font-size:0.8rem;">
-                🟢 Active Live
+            <div style="font-size:0.8rem; color:#64748b; font-weight:600;">📅 Monday, October 26, 2026 • 16:50 WIB</div>
+            <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); padding:6px 14px; border-radius:20px; color:#10b981; font-weight:700; font-size:0.8rem; display:flex; align-items:center; gap:8px;">
+                <span class="pulse-dot"></span> System Operational
             </div>
         </div>
     </div>
@@ -516,32 +526,32 @@ al_col1, al_col2, al_col3 = st.columns(3)
 with al_col1:
     st.markdown("""
         <div class="alert-box alert-danger">
-            <div class="alert-title">🌡️ Temperature Alert</div>
-            <div class="alert-desc">Storage Unit B exceeding optimal range (29°C)</div>
+            <div style="font-weight:700; font-size:0.88rem;">🌡️ Temperature Alert</div>
+            <div style="font-size:0.78rem; opacity:0.85; margin-top:3px;">Storage Unit B exceeding optimal range (29°C)</div>
         </div>
     """, unsafe_allow_html=True)
 
 with al_col2:
     st.markdown("""
         <div class="alert-box alert-warning">
-            <div class="alert-title">💧 Humidity Warning</div>
-            <div class="alert-desc">Wheat storage humidity at 14% - action required</div>
+            <div style="font-weight:700; font-size:0.88rem;">💧 Humidity Warning</div>
+            <div style="font-size:0.78rem; opacity:0.85; margin-top:3px;">Wheat storage humidity at 14% - action required</div>
         </div>
     """, unsafe_allow_html=True)
 
 with al_col3:
     st.markdown("""
         <div class="alert-box alert-success">
-            <div class="alert-title">📈 Market Opportunity</div>
-            <div class="alert-desc">Crop market prices up +5.2% - optimal selling window</div>
+            <div style="font-weight:700; font-size:0.88rem;">📈 Market Opportunity</div>
+            <div style="font-size:0.78rem; opacity:0.85; margin-top:3px;">Crop market prices up +5.2% - optimal selling window</div>
         </div>
     """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Helper function buat grafik tren mini (Sparkline) di kartu Farm Overview
+# Helper function buat grafik tren mini (Sparkline)
 def create_sparkline(y_values):
-    fig = go.Figure(data=go.Scatter(y=y_values, mode='lines', line=dict(color='#10b981', width=2.5)))
+    fig = go.Figure(data=go.Scatter(y=y_values, mode='lines', line=dict(color='#10b981', width=3)))
     fig.update_layout(
         height=55, margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(visible=False), yaxis=dict(visible=False),
@@ -549,7 +559,7 @@ def create_sparkline(y_values):
     )
     return fig
 
-# Farm Overview Widget Cards (Visual Kurva Hijau Emerald)
+# Farm Overview Widget Cards
 st.markdown("##### 🌐 Farm Overview & Real-Time Facilities")
 farm_col1, farm_col2 = st.columns(2)
 
@@ -560,7 +570,7 @@ with farm_col1:
                 <div>
                     <span style="font-weight:800; font-size:1.05rem; color:#fff;">North Valley Farm</span>
                     <span class="badge-opt" style="margin-left:8px;">OPTIMAL</span>
-                    <div style="font-size:0.75rem; color:#64748b;">Sidoarjo, Jawa Timur</div>
+                    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Sidoarjo, Jawa Timur</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:1.5rem; font-weight:800; color:#fff;">2,450</div>
@@ -578,7 +588,7 @@ with farm_col2:
                 <div>
                     <span style="font-weight:800; font-size:1.05rem; color:#fff;">East Field Operations</span>
                     <span class="badge-opt" style="margin-left:8px;">OPTIMAL</span>
-                    <div style="font-size:0.75rem; color:#64748b;">Malang, Jawa Timur</div>
+                    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Malang, Jawa Timur</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:1.5rem; font-weight:800; color:#fff;">1,820</div>
@@ -592,7 +602,7 @@ with farm_col2:
 st.markdown("---")
 
 # ==============================================================================
-# 4. TAB NAVIGATION INTERAKTIF (KODE KAMPUS KAMU)
+# 4. TAB NAVIGATION INTERAKTIF (FITUR KAMPUS AMAN SEPENUHNYA)
 # ==============================================================================
 tab1, tab2, tab3, tab_yield, tab4, tab5 = st.tabs([
     "Kelayakan Lahan",
@@ -668,7 +678,7 @@ with tab1:
 
     st.markdown(f'''
         <div class="custom-card" style="padding: 14px 20px; margin-bottom: 20px;">
-            <b>📡 GIS Engine v3.0 (Copernicus & SoilGrids Live API)</b> | Komoditas Sidebar: <span style="color:#0284c7;"><b>{selected_crop_global}</b></span> ({crop_data['kategori']}) |
+            📡 <b>GIS Engine v3.0 (Copernicus & SoilGrids Live API)</b> | Komoditas Sidebar: <span style="color:#38bdf8;"><b>{selected_crop_global}</b></span> ({crop_data['kategori']}) |
             <b>Luas:</b> <span style="color:#10b981;">{area_ha} ha</span> |
             <b>Koordinat:</b> <span style="color:#f59e0b;">{round(current_lat, 5)}° S, {round(current_lon, 5)}° E</span>
         </div>
@@ -690,7 +700,7 @@ with tab1:
 
     if drawn_features is None or len(drawn_features) == 0:
         with col1:
-            st.warning("Tandai area pada peta untuk memulai evaluasi kesesuaian lahan.")
+            st.warning("Tandai area pada peta di atas untuk memulai evaluasi kesesuaian lahan.")
     elif is_settlement:
         with col1:
             st.markdown('<div class="suitability-fail">STATUS LAHAN:<br><span style="font-size:1.1rem;">❌ TIDAK LAYAK UNTUK PERTANIAN (AREA PEMUKIMAN)</span></div>', unsafe_allow_html=True)
@@ -907,7 +917,7 @@ with tab_yield:
             st.markdown(f'<div class="metric-card"><div class="metric-label">Akurasi Model (R²)</div><div class="metric-value" style="color:#38bdf8;">0.93 <span style="font-size:0.9rem;">(R² > 0.89)</span></div></div>', unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("### 📊 Visualisasi & Analisis Grafis Model")
+    st.markdown("### 📊 Visualisasi Interaktif & Analisis Grafis Model")
 
     g_col1, g_col2 = st.columns(2)
 
@@ -945,7 +955,7 @@ with tab_yield:
             mode='lines+markers+text',
             name='Proyeksi Yield',
             line=dict(color='#10b981', width=3),
-            marker=dict(size=10),
+            marker=dict(size=10, color='#10b981'),
             text=[f"{v:.1f} Ton" for v in yield_trend],
             textposition="top center"
         ))
