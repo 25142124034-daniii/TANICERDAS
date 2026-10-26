@@ -9,7 +9,6 @@ import requests
 import plotly.graph_objects as go
 import plotly.express as px
 import io
-import time
 from google import genai
 from google.genai import types
 
@@ -27,14 +26,18 @@ except Exception as e:
 # ==============================================================================
 # INTEGRASI GEMINI AI API
 # ==============================================================================
+# Mengambil API Key secara aman dari Secrets Streamlit Cloud
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
+
+import time
 
 @st.cache_data(show_spinner=False)
 def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
     if GEMINI_API_KEY == "MASUKKAN_API_KEY_GEMINI_KAMU_DI_SINI" or not GEMINI_API_KEY:
         return "⚠️ **API Key Gemini belum dipasang.** Silakan isi `GEMINI_API_KEY` di Streamlit Secrets."
     
-    models_to_try = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash']
+    # Coba pakai model gemini-2.5-flash dulu, kalau sibuk otomatis coba gemini-1.5-flash
+    models_to_try = ['gemini-3.8-flash', 'gemini-3.6-flash']
     
     prompt = f"""
     Kamu adalah pakar patologi tanaman dan agronomis profesional. 
@@ -53,6 +56,7 @@ def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
     """
 
     for model_name in models_to_try:
+        # Lakukan percobaan hingga 3 kali jika kena error 503 (server sibuk)
         for attempt in range(3):
             try:
                 client = genai.Client(api_key=GEMINI_API_KEY)
@@ -66,22 +70,21 @@ def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
                 return response.text
             except Exception as e:
                 if "503" in str(e) or "UNAVAILABLE" in str(e):
-                    time.sleep(2)
+                    time.sleep(2)  # Tunggu 2 detik sebelum coba lagi
                     continue
                 else:
                     return f"⚠️ Gagal menghubungkan ke Gemini AI: {e}"
 
     return "⚠️ Server Gemini AI sedang sangat sibuk. Silakan tekan tombol analisis sekali lagi dalam beberapa detik."
-
 # ==============================================================================
 # FUNGSI INTEGRASI COPERNICUS SENTINEL-2 API & SOILGRIDS
 # ==============================================================================
-COPERNICUS_CLIENT_ID = "sh-e259c171-9d0e-470b-9e67-24ff1bc73a41"
-COPERNICUS_CLIENT_SECRET = "aQvzUG7UaSrNChDHvNkx1iWlmVJUXWWVvJd4ncCcR6RyqoLXGeomtZWeUhhv3VR8rjt6r2gjhDEz1vMjLdlYIj"
+COPERNICUS_CLIENT_ID = st.secrets.get("COPERNICUS_CLIENT_ID", "")
+COPERNICUS_CLIENT_SECRET = st.secrets.get("COPERNICUS_CLIENT_SECRET", "")
 
 @st.cache_data(ttl=3600)
 def get_sentinel_token():
-    if COPERNICUS_CLIENT_ID == "sh-e259c171-9d0e-470b-9e67-24ff1bc73a41" or not COPERNICUS_CLIENT_ID:
+    if not COPERNICUS_CLIENT_ID or not COPERNICUS_CLIENT_SECRET:
         return None
     try:
         auth_url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
@@ -175,213 +178,56 @@ def get_real_weather_nasa(lat, lon):
     return None
 
 # ==============================================================================
-# 1. KONFIGURASI HALAMAN & CUSTOM CSS DESAIN ULTRA MODERN INTERAKTIF
+# 1. KONFIGURASI HALAMAN
 # ==============================================================================
 st.set_page_config(
-    page_title="TaniCerdas AI - High-Tech Dashboard",
-    page_icon="🟢",
+    page_title="TaniCerdas AI Precision",
+    page_icon="🌾",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
-    html, body, [class*="st-"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    /* Overall Background Dark Theme */
-    .stApp {
-        background: radial-gradient(circle at 50% -20%, #152335 0%, #0b1017 80%) !important;
-        color: #e2e8f0;
-    }
-
-    .block-container {
-        padding-top: 1.2rem !important;
-        padding-bottom: 3rem !important;
-        max-width: 1550px;
-    }
-
-    /* Glassmorphism Sidebar */
-    section[data-testid="stSidebar"] {
-        background: rgba(15, 23, 34, 0.85) !important;
-        backdrop-filter: blur(16px);
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-
-    /* Live Pulsing Dot Animation */
-    .pulse-dot {
-        width: 10px;
-        height: 10px;
-        background-color: #10b981;
-        border-radius: 50%;
-        display: inline-block;
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-        animation: pulse 1.6s infinite;
-    }
-    @keyframes pulse {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-
-    /* Header Styling */
-    .command-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 18px;
-        margin-bottom: 22px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .command-title {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #ffffff;
-        margin: 0;
-        letter-spacing: -0.5px;
-    }
-    .command-subtitle {
-        font-size: 0.85rem;
-        color: #64748b;
-        margin-top: 2px;
-    }
-
-    /* Interactive Hover Glass Cards */
-    .custom-card, .command-card {
-        background: rgba(19, 28, 39, 0.7);
-        backdrop-filter: blur(12px);
-        border-radius: 16px;
-        padding: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        margin-bottom: 15px;
-    }
-    .command-card:hover {
-        transform: translateY(-3px);
-        border-color: rgba(16, 185, 129, 0.4);
-        box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15);
-    }
-
-    /* Interactive Alert Box */
-    .alert-box {
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 10px;
-        transition: transform 0.2s ease;
-    }
-    .alert-box:hover {
-        transform: scale(1.02);
-    }
-    .alert-danger {
-        background: linear-gradient(135deg, rgba(153, 27, 27, 0.25) 0%, rgba(88, 28, 28, 0.3) 100%);
-        border: 1px solid rgba(239, 68, 68, 0.4);
-        color: #fca5a5;
-    }
-    .alert-warning {
-        background: linear-gradient(135deg, rgba(180, 83, 9, 0.25) 0%, rgba(120, 53, 15, 0.3) 100%);
-        border: 1px solid rgba(245, 158, 11, 0.4);
-        color: #fde68a;
-    }
-    .alert-success {
-        background: linear-gradient(135deg, rgba(6, 95, 70, 0.25) 0%, rgba(6, 78, 59, 0.3) 100%);
-        border: 1px solid rgba(16, 185, 129, 0.4);
-        color: #6ee7b7;
-    }
-
-    /* Badges */
-    .badge-opt {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-    }
-
-    /* Interactive Metric Box */
-    .metric-card {
-        background: rgba(15, 23, 34, 0.8);
-        border-radius: 14px;
-        padding: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        text-align: center;
-        transition: all 0.2s ease;
-    }
-    .metric-card:hover {
-        border-color: #38bdf8;
-        background: rgba(15, 23, 34, 0.95);
-    }
-    .metric-value {
-        font-size: 26px;
-        font-weight: 800;
-        color: #10b981;
-    }
-    .metric-label {
-        font-size: 12px;
-        color: #94a3b8;
-        font-weight: 600;
-    }
-
-    /* Tab Custom Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background: rgba(15, 23, 34, 0.5) !important;
-        padding: 6px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 42px;
-        border-radius: 10px;
-        font-weight: 600;
-        border: none !important;
-        padding: 0 20px;
-        color: #94a3b8 !important;
-        background-color: transparent !important;
-        transition: all 0.2s ease;
-    }
-    .stTabs [aria-selected="true"] {
-        background: #10b981 !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
-    }
-    .stTabs [data-baseweb="tab-highlight"] {
-        display: none !important;
-    }
-
-    .suitability-pass {
-        background: linear-gradient(135deg, rgba(6, 95, 70, 0.8) 0%, rgba(20, 83, 45, 0.9) 100%);
-        border: 1px solid #10b981;
-        color: #a7f3d0;
-        padding: 20px;
-        border-radius: 16px;
-        font-weight: 700;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
-    }
-    .suitability-fail {
-        background: linear-gradient(135deg, rgba(153, 27, 27, 0.8) 0%, rgba(127, 29, 29, 0.9) 100%);
-        border: 1px solid #ef4444;
-        color: #fca5a5;
-        padding: 20px;
-        border-radius: 16px;
-        font-weight: 700;
-        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
-    }
-
-    code {
-        color: #38bdf8 !important;
-        background: rgba(15, 23, 34, 0.9) !important;
-        padding: 3px 8px !important;
-        border-radius: 6px !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
-    }
-    </style>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root { --forest:#064e3b; --mint:#10b981; --canvas:#f4f8f5; --ink:#102c24; --muted:#668078; }
+html,body,[class*="css"] {font-family:'Plus Jakarta Sans',sans-serif;}
+[data-testid="stAppViewContainer"] {background:linear-gradient(135deg,#f2f9f5 0%,#fff 49%,#f1f7f2 100%);color:#12342a;}
+[data-testid="stHeader"] {background:rgba(244,248,245,.82);backdrop-filter:blur(14px);}
+[data-testid="stSidebar"] {background:linear-gradient(180deg,#073e30,#0b513c 58%,#093d31);border-right:1px solid rgba(255,255,255,.1);}
+[data-testid="stSidebar"] * {color:#eefdf5;}
+[data-testid="stSidebar"] [data-baseweb="select"] * {color:#102c24 !important;}
+[data-testid="stSidebar"] .custom-card {background:rgba(255,255,255,.09);color:#fff;border-color:rgba(255,255,255,.14);}
+.block-container {padding-top:1rem!important;padding-bottom:3rem!important;max-width:1480px;}
+h1,h2,h3,h4,h5 {font-family:'DM Sans',sans-serif;letter-spacing:-.035em;color:#13392b;}
+.hero {position:relative;overflow:hidden;border-radius:26px;padding:34px 36px;margin:8px 0 24px;background:radial-gradient(circle at 85% 10%,rgba(118,235,161,.28),transparent 36%),linear-gradient(120deg,#073b2b 0%,#126c48 100%);box-shadow:0 18px 45px rgba(6,78,59,.16);color:white;}
+.hero:after {content:'✺';position:absolute;right:38px;top:-55px;font-size:240px;color:rgba(255,255,255,.06);pointer-events:none;}
+.hero .eyebrow {font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.19em;color:#9af2c5;}
+.hero h1 {color:white;font-size:clamp(26px,3vw,42px);line-height:1.13;margin:10px 0 12px;font-weight:800;}
+.hero p {color:#d2f4e1;max-width:680px;line-height:1.75;margin:0;font-size:14px;}
+.hero-pills {display:flex;flex-wrap:wrap;gap:9px;margin-top:20px;}
+.hero-pills span {font-size:12px;padding:7px 13px;border-radius:100px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#effff5;}
+.custom-card,.metric-card {background:#fff;border-radius:20px;padding:20px;border:1px solid #e2eee6;box-shadow:0 7px 24px rgba(15,75,49,.055);margin-bottom:16px;transition:transform .2s ease,box-shadow .2s ease,border-color .2s;}
+.custom-card:hover,.metric-card:hover {transform:translateY(-3px);box-shadow:0 14px 34px rgba(15,75,49,.11);border-color:#b6e5c8;}
+.metric-card{text-align:left;min-height:108px;display:flex;flex-direction:column;justify-content:space-between;}
+.metric-value {font-size:clamp(22px,2vw,29px);font-weight:800;color:#0d7951;letter-spacing:-.04em;}
+.metric-label {font-size:12px;color:#61766c;font-weight:700;}
+.stTabs [data-baseweb="tab-list"] {gap:7px;padding:6px;border-radius:15px;background:#eaf3ed;flex-wrap:wrap;box-shadow:inset 0 0 0 1px #dcece1;}
+.stTabs [data-baseweb="tab"] {border-radius:11px;height:45px;padding:0 15px;color:#4c6f5c!important;font-size:13px;font-weight:750;}
+.stTabs [aria-selected="true"] {background:#fff!important;color:#08794a!important;box-shadow:0 2px 10px rgba(6,78,59,.12);}
+.stTabs [data-baseweb="tab-highlight"],.stTabs [data-baseweb="tab-border"]{display:none!important;}
+.stButton>button[kind="primary"],div.stButton>button {border-radius:12px;min-height:43px;font-weight:750;transition:all .18s ease;}
+div.stButton>button:hover {transform:translateY(-2px);box-shadow:0 8px 18px rgba(16,120,72,.16);}
+[data-testid="stFileUploader"], [data-testid="stCameraInput"] {border-radius:17px;overflow:hidden;}
+[data-testid="stDataFrame"], [data-testid="stPlotlyChart"], iframe {border-radius:16px;overflow:hidden;}
+[data-testid="stAlert"] {border-radius:13px;}
+[data-baseweb="select"]>div, [data-baseweb="input"]>div {border-radius:11px;}
+.suitability-pass {background:linear-gradient(135deg,#e0f9e9,#f2fff7);border:1px solid #77dca2;color:#066b43;padding:20px;border-radius:16px;font-weight:800;}
+.suitability-fail {background:linear-gradient(135deg,#fff1ee,#fff8f4);border:1px solid #ffb6a6;color:#a63220;padding:20px;border-radius:16px;font-weight:800;}
+code {background:#eaf6ee!important;color:#05643d!important;border-radius:6px;padding:2px 5px!important;}
+@media (max-width:700px){.hero{padding:25px 20px;border-radius:18px}.hero:after{font-size:150px;right:0;top:-20px}.block-container{padding-left:1rem!important;padding-right:1rem!important}.stTabs [data-baseweb="tab"]{padding:0 10px;font-size:11px}.metric-card{min-height:92px}}
+@media (prefers-reduced-motion:reduce){.custom-card,.metric-card,div.stButton>button{transition:none!important;transform:none!important;}}
+</style>
 """, unsafe_allow_html=True)
 
 # ==============================================================================
@@ -442,182 +288,69 @@ CROPS_DATABASE = {
 }
 
 # ==============================================================================
-# 2. SIDEBAR NAVIGATION & TEAM PANEL
+# 2. SIDEBAR NAVIGATION & GLOBAL CROP SELECTION
 # ==============================================================================
 with st.sidebar:
     st.markdown("""
-        <div style='display:flex; align-items:center; gap:12px; padding: 5px 0 15px 0;'>
-            <div style='background:linear-gradient(135deg, #10b981, #059669); width:18px; height:18px; border-radius:6px; box-shadow:0 0 10px #10b981;'></div>
-            <h2 style='color:#ffffff; margin:0; font-weight:800; font-size:1.35rem; letter-spacing:-0.5px;'>TaniCerdas OS</h2>
+        <div style="padding:14px 5px 18px">
+          <div style="font-size:25px;font-weight:800;letter-spacing:-1px;color:#f0fff5">🌱 TaniCerdas<span style="color:#70e4a1"> AI</span></div>
+          <div style="font-size:10px;letter-spacing:2px;color:#b7e5ca;margin-top:5px">SMART AGRICULTURE PLATFORM</div>
         </div>
     """, unsafe_allow_html=True)
     st.divider()
 
-    st.markdown("### ⚙️ Target Komoditas")
+    st.markdown("#### 🎯 Pengaturan komoditas")
     categories = list(set(crop["kategori"] for crop in CROPS_DATABASE.values()))
 
     default_cat_idx = sorted(categories).index("Buah-Buahan") if "Buah-Buahan" in categories else 0
-    selected_cat = st.selectbox("Kategori Komoditas:", sorted(categories), index=default_cat_idx)
+    selected_cat = st.selectbox("Pilih Kategori Komoditas:", sorted(categories), index=default_cat_idx)
 
     filtered_crops = [k for k, v in CROPS_DATABASE.items() if v["kategori"] == selected_cat]
 
     banana_key = "Pisang (Cavendish/Ambon/Raja/Barangan)"
     default_crop_idx = filtered_crops.index(banana_key) if banana_key in filtered_crops else 0
 
-    selected_crop_global = st.selectbox("Tanaman Target:", sorted(filtered_crops), index=default_crop_idx)
+    selected_crop_global = st.selectbox("Pilih Tanaman Target:", sorted(filtered_crops), index=default_crop_idx)
 
     crop_data = CROPS_DATABASE[selected_crop_global]
 
     st.markdown(f"""
-        <div class="custom-card" style="margin-top: 15px; padding: 14px; border-left: 3px solid #10b981;">
-            <div style="font-size:0.8rem; color:#cbd5e1;"><b>Kategori:</b> {crop_data['kategori']}</div>
-            <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px;"><b>Siklus:</b> {crop_data['cycle']}</div>
-            <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px;"><b>Estimasi:</b> {crop_data['yield_est']}</div>
+        <div class="custom-card" style="margin-top: 15px; padding: 15px; border-left: 4px solid #10b981;">
+            <div style="font-size:0.85rem;"><b>Kategori:</b> {crop_data['kategori']}</div>
+            <div style="font-size:0.85rem; margin-top:5px;"><b>Siklus Tanam:</b> {crop_data['cycle']}</div>
+            <div style="font-size:0.85rem; margin-top:5px;"><b>Estimasi Hasil:</b> {crop_data['yield_est']}</div>
         </div>
     """, unsafe_allow_html=True)
 
-    st.divider()
-    st.markdown("### 👥 Active Farm Managers")
-
-    team = [
-        {"name": "Sarah Chen", "role": "Farm Manager", "avatar": "SC", "color": "#10b981", "status": "North Farm"},
-        {"name": "Michael Torres", "role": "Operations Lead", "avatar": "MT", "color": "#38bdf8", "status": "East Field"},
-        {"name": "Emma Wilson", "role": "Quality Control", "avatar": "EW", "color": "#a855f7", "status": "Processing Unit"},
-        {"name": "David Park", "role": "Analytics Lead", "avatar": "DP", "color": "#f59e0b", "status": "HQ Office"}
-    ]
-
-    for member in team:
-        st.markdown(f"""
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-                <div style="background:{member['color']}; color:#fff; font-weight:700; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; box-shadow: 0 0 10px {member['color']}55;">
-                    {member['avatar']}
-                </div>
-                <div>
-                    <div style="font-size:0.82rem; font-weight:700; color:#ffffff;">{member['name']}</div>
-                    <div style="font-size:0.72rem; color:#64748b;">{member['role']} • <span style="color:#94a3b8;">{member['status']}</span></div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
-# ==============================================================================
-# 3. TOP COMMAND HEADER & GLOBAL ALERT CENTER
-# ==============================================================================
-st.markdown("""
-    <div class="command-header">
-        <div>
-            <h1 class="command-title">
-                <span class="pulse-dot" style="margin-right:8px;"></span>
-                Command Center
-            </h1>
-            <div class="command-subtitle">Real-time precision agriculture analytics & AI diagnostic monitoring</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:15px;">
-            <div style="font-size:0.8rem; color:#64748b; font-weight:600;">📅 Monday, October 26, 2026 • 16:50 WIB</div>
-            <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); padding:6px 14px; border-radius:20px; color:#10b981; font-weight:700; font-size:0.8rem; display:flex; align-items:center; gap:8px;">
-                <span class="pulse-dot"></span> System Operational
-            </div>
-        </div>
-    </div>
+# Dashboard header
+st.markdown(f"""
+<section class="hero">
+  <div class="eyebrow">✦ Precision farming • Intelligence dashboard</div>
+  <h1>Kelola Lahan Lebih Cerdas.<br>Panen Lebih Optimal.</h1>
+  <p>Eksplorasi peta lahan, deteksi gangguan tanaman dengan AI, simulasi kebutuhan irigasi dan pelajari potensi panen dalam satu platform interaktif.</p>
+  <div class="hero-pills"><span>🌿 {selected_crop_global}</span><span>🗺️ Pemetaan lahan</span><span>🔬 Diagnosa AI</span><span>💧 Irigasi presisi</span></div>
+</section>
 """, unsafe_allow_html=True)
-
-st.markdown("##### ⚠️ Global Alert Center")
-al_col1, al_col2, al_col3 = st.columns(3)
-
-with al_col1:
-    st.markdown("""
-        <div class="alert-box alert-danger">
-            <div style="font-weight:700; font-size:0.88rem;">🌡️ Temperature Alert</div>
-            <div style="font-size:0.78rem; opacity:0.85; margin-top:3px;">Storage Unit B exceeding optimal range (29°C)</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-with al_col2:
-    st.markdown("""
-        <div class="alert-box alert-warning">
-            <div style="font-weight:700; font-size:0.88rem;">💧 Humidity Warning</div>
-            <div style="font-size:0.78rem; opacity:0.85; margin-top:3px;">Wheat storage humidity at 14% - action required</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-with al_col3:
-    st.markdown("""
-        <div class="alert-box alert-success">
-            <div style="font-weight:700; font-size:0.88rem;">📈 Market Opportunity</div>
-            <div style="font-size:0.78rem; opacity:0.85; margin-top:3px;">Crop market prices up +5.2% - optimal selling window</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Helper function buat grafik tren mini (Sparkline)
-def create_sparkline(y_values):
-    fig = go.Figure(data=go.Scatter(y=y_values, mode='lines', line=dict(color='#10b981', width=3)))
-    fig.update_layout(
-        height=55, margin=dict(l=0, r=0, t=0, b=0),
-        xaxis=dict(visible=False), yaxis=dict(visible=False),
-        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)'
-    )
-    return fig
-
-# Farm Overview Widget Cards
-st.markdown("##### 🌐 Farm Overview & Real-Time Facilities")
-farm_col1, farm_col2 = st.columns(2)
-
-with farm_col1:
-    st.markdown("""
-        <div class="command-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span style="font-weight:800; font-size:1.05rem; color:#fff;">North Valley Farm</span>
-                    <span class="badge-opt" style="margin-left:8px;">OPTIMAL</span>
-                    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Sidoarjo, Jawa Timur</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:1.5rem; font-weight:800; color:#fff;">2,450</div>
-                    <div style="font-size:0.75rem; color:#10b981; font-weight:700;">+8.5%</div>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    st.plotly_chart(create_sparkline([10, 11, 13, 12, 16, 18, 22]), use_container_width=True, key="spark1_ui")
-
-with farm_col2:
-    st.markdown("""
-        <div class="command-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span style="font-weight:800; font-size:1.05rem; color:#fff;">East Field Operations</span>
-                    <span class="badge-opt" style="margin-left:8px;">OPTIMAL</span>
-                    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Malang, Jawa Timur</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:1.5rem; font-weight:800; color:#fff;">1,820</div>
-                    <div style="font-size:0.75rem; color:#10b981; font-weight:700;">+5.2%</div>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    st.plotly_chart(create_sparkline([8, 10, 9, 14, 13, 17, 19]), use_container_width=True, key="spark2_ui")
-
-st.markdown("---")
+st.caption("💡 Mulai dengan memilih komoditas di sidebar, kemudian buka fitur yang ingin digunakan di bawah ini.")
 
 # ==============================================================================
-# 4. TAB NAVIGATION INTERAKTIF (FITUR KAMPUS AMAN SEPENUHNYA)
+# 3. TAB NAVIGATION
 # ==============================================================================
 tab1, tab2, tab3, tab_yield, tab4, tab5 = st.tabs([
-    "Kelayakan Lahan",
-    "Diagnosa Penyakit",
-    "Irigasi FAO",
-    "Estimasi Hasil Panen",
-    "Database Buah & Sayur",
-    "Open Datasets"
+    "🗺️ Pemetaan Lahan",
+    "🔬 Diagnosa AI",
+    "💧 Irigasi",
+    "📈 Prediksi Panen",
+    "🌿 Katalog Tanaman",
+    "📚 Dataset"
 ])
 
 # ------------------------------------------------------------------------------
 # TAB 1: KELAYAKAN LAHAN
 # ------------------------------------------------------------------------------
 with tab1:
-    st.markdown(f"### Analisis Spasial & Kelayakan Lahan ({selected_crop_global})")
+    st.markdown(f"### 🗺️ Peta Interaktif & Kelayakan Lahan")
+    st.caption(f"Gambar batas area pertanian di peta untuk mengkaji komoditas: {selected_crop_global}.")
 
     lat_center, lon_center = -7.4965, 112.6316
 
@@ -676,9 +409,10 @@ with tab1:
     crop_ndvi_match = ndvi_val >= crop_data["ndvi_min"]
     is_suitable = (not is_settlement) and crop_ph_match and crop_ndvi_match
 
+    st.caption("⚠️ NDVI/NDWI/NDBI menggunakan nilai contoh jika data satelit tidak tersedia; jangan gunakan sebagai pengukuran lapangan.")
     st.markdown(f'''
         <div class="custom-card" style="padding: 14px 20px; margin-bottom: 20px;">
-            📡 <b>GIS Engine v3.0 (Copernicus & SoilGrids Live API)</b> | Komoditas Sidebar: <span style="color:#38bdf8;"><b>{selected_crop_global}</b></span> ({crop_data['kategori']}) |
+            <b>📡 GIS Dashboard • Copernicus / SoilGrids (bila tersedia)</b> | Komoditas Sidebar: <span style="color:#0284c7;"><b>{selected_crop_global}</b></span> ({crop_data['kategori']}) |
             <b>Luas:</b> <span style="color:#10b981;">{area_ha} ha</span> |
             <b>Koordinat:</b> <span style="color:#f59e0b;">{round(current_lat, 5)}° S, {round(current_lon, 5)}° E</span>
         </div>
@@ -700,7 +434,7 @@ with tab1:
 
     if drawn_features is None or len(drawn_features) == 0:
         with col1:
-            st.warning("Tandai area pada peta di atas untuk memulai evaluasi kesesuaian lahan.")
+            st.warning("Tandai area pada peta untuk memulai evaluasi kesesuaian lahan.")
     elif is_settlement:
         with col1:
             st.markdown('<div class="suitability-fail">STATUS LAHAN:<br><span style="font-size:1.1rem;">❌ TIDAK LAYAK UNTUK PERTANIAN (AREA PEMUKIMAN)</span></div>', unsafe_allow_html=True)
@@ -740,7 +474,7 @@ with tab1:
 # TAB 2: DIAGNOSA PENYAKIT DAUN & BUAH (DENGAN GEMINI AI)
 # ------------------------------------------------------------------------------
 with tab2:
-    st.markdown(f"### Diagnosa Penyakit & Hama Daun/Buah ({selected_crop_global})")
+    st.markdown(f"### 🔬 Diagnosa Penyakit & Hama Tanaman")
     st.write(f"Gunakan kamera atau unggah foto sampel daun/buah **{selected_crop_global}** untuk mendiagnosa potensi penyakit secara spesifik menggunakan Gemini AI.")
 
     col_input, col_result = st.columns([1, 1.2])
@@ -780,14 +514,16 @@ with tab2:
 
     with col_result:
         st.markdown(f"#### Hasil Analisis Gemini AI ({selected_crop_global})")
-        if image_source:
+        if image_source and st.button("✨ Mulai Analisis AI", type="primary", use_container_width=True):
             with st.spinner(f"🤖 Gemini AI sedang menganalisis karakteristik penyakit pada {selected_crop_global}..."):
+                # Kompresi gambar agar proses kirim super cepat
                 img_temp = image.copy()
                 img_temp.thumbnail((800, 800))
                 img_byte_arr = io.BytesIO()
                 img_temp.convert('RGB').save(img_byte_arr, format='JPEG', quality=75)
                 compressed_bytes = img_byte_arr.getvalue()
 
+                # Panggil fungsi yang sudah di-cache
                 ai_analysis = analyze_plant_disease_with_gemini(compressed_bytes, selected_crop_global)
                 
                 if "BUKAN_TANAMAN" in ai_analysis:
@@ -797,13 +533,13 @@ with tab2:
                     st.success("✅ Analisis Berhasil")
                     st.markdown(ai_analysis)
         else:
-            st.write("Hasil analisis Gemini AI akan muncul di sini setelah foto diambil/diunggah.")
+            st.info("Unggah atau ambil foto lalu tekan **Mulai Analisis AI** untuk melihat hasil diagnosis.")
 
 # ------------------------------------------------------------------------------
 # TAB 3: KALKULATOR IRIGASI FAO-56
 # ------------------------------------------------------------------------------
 with tab3:
-    st.markdown(f"### Kalkulator Irigasi Presisi FAO-56 ({selected_crop_global})")
+    st.markdown(f"### 💧 Kalkulator Kebutuhan Air Tanaman")
     st.write(f"Kalkulasi Kebutuhan Air Tanaman (ETc) dan Rekomendasi Penyiraman Presisi untuk komoditas **{selected_crop_global}**.")
 
     nasa_data = get_real_weather_nasa(current_lat, current_lon)
@@ -895,8 +631,8 @@ with tab3:
 # TAB ESTIMASI HASIL PANEN
 # ------------------------------------------------------------------------------
 with tab_yield:
-    st.markdown(f"### 📈 Estimasi Hasil Panen & Pemodelan Prediktif ({selected_crop_global})")
-    st.write(f"Sistem prediktif berbasis machine learning ensemble untuk menghitung estimasi bobot panen komoditas **{selected_crop_global}**.")
+    st.markdown(f"### 📈 Simulasi Estimasi Hasil Panen ({selected_crop_global})")
+    st.write(f"Simulasi berbobot dari dua input prediksi model untuk memperkirakan bobot panen komoditas **{selected_crop_global}**.")
 
     col_p1, col_p2 = st.columns([1, 1.2])
 
@@ -914,10 +650,10 @@ with tab_yield:
         with y1:
             st.markdown(f'<div class="metric-card"><div class="metric-label">Estimasi Hasil Ensemble (ŷ)</div><div class="metric-value" style="color:#10b981;">{y_ensemble:.2f} <span style="font-size:0.9rem;">Ton/Ha</span></div></div>', unsafe_allow_html=True)
         with y2:
-            st.markdown(f'<div class="metric-card"><div class="metric-label">Akurasi Model (R²)</div><div class="metric-value" style="color:#38bdf8;">0.93 <span style="font-size:0.9rem;">(R² > 0.89)</span></div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-card"><div class="metric-label">Contoh R² (belum divalidasi)</div><div class="metric-value" style="color:#38bdf8;">0.93 <span style="font-size:0.9rem;">(R² > 0.89)</span></div></div>', unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("### 📊 Visualisasi Interaktif & Analisis Grafis Model")
+    st.markdown("### 📊 Visualisasi & Analisis Grafis Model")
 
     g_col1, g_col2 = st.columns(2)
 
@@ -955,7 +691,7 @@ with tab_yield:
             mode='lines+markers+text',
             name='Proyeksi Yield',
             line=dict(color='#10b981', width=3),
-            marker=dict(size=10, color='#10b981'),
+            marker=dict(size=10),
             text=[f"{v:.1f} Ton" for v in yield_trend],
             textposition="top center"
         ))
@@ -996,7 +732,7 @@ with tab_yield:
 # TAB 4: DATABASE KOMODITAS
 # ------------------------------------------------------------------------------
 with tab4:
-    st.markdown("### Database Komoditas, Buah-Buahan & Sayuran Indonesia (Lengkap)")
+    st.markdown("### 🌿 Eksplorasi Database Komoditas Pertanian")
     st.write("Daftar komoditas nasional beserta parameter tumbuh idealnya:")
 
     df_crops = pd.DataFrame.from_dict(CROPS_DATABASE, orient='index')
@@ -1018,7 +754,7 @@ with tab4:
 # TAB 5: OPEN DATASETS
 # ------------------------------------------------------------------------------
 with tab5:
-    st.header("Repository Open Dataset Penyakit Buah & Sayur Global")
+    st.header("📚 Referensi Dataset Penyakit Tanaman")
     st.caption("Daftar link dataset open-source yang dapat diakses publik untuk pengembangan model Computer Vision:")
     st.markdown("---")
 
