@@ -37,7 +37,7 @@ def analyze_plant_disease_with_gemini(image_bytes_data, crop_name):
         return "⚠️ **API Key Gemini belum dipasang.** Silakan isi `GEMINI_API_KEY` di Streamlit Secrets."
     
     # Coba pakai model gemini-2.5-flash dulu, kalau sibuk otomatis coba gemini-1.5-flash
-    models_to_try = ['gemini-2.5-flash', 'gemini-1.5-flash']
+    models_to_try = ['gemini-3.8-flash', 'gemini-3.6-flash']
     
     prompt = f"""
     Kamu adalah pakar patologi tanaman dan agronomis profesional. 
